@@ -1,6 +1,8 @@
 docblock-reflection
 ===================
 
+[![Build Status](https://travis-ci.org/kamermans/docblock-reflection.svg?branch=master)](https://travis-ci.org/kamermans/docblock-reflection)
+
 Simple, Fast PHP DocBlock Parser / Reflector
 
 This is a dead-simple DocBlock / doc comment / PHPDoc parser.  It separates a block into tags and a comment and that's it.  Nothing fancy here.  If you want fancy, use the Doctrine Annotation bundle.
