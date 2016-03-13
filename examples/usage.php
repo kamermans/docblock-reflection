@@ -2,34 +2,39 @@
 
 use kamermans\Reflection\DocBlock;
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 /**
- * A Foo class
+ * A Foo class.
  * 
  * @deprecated
+ *
  * @version      v1.1
+ *
  * @see          Foo::bar()
  * @see          google.com
  */
-class Foo {
+class Foo
+{
     /**
      * Does something that is really
-     * cool and makes your life easy
+     * cool and makes your life easy.
      * 
      * @param string $name Your name
+     *
      * @return string
      */
-    public function bar($name) {
+    public function bar($name)
+    {
         return "FooBar $name";
     }
 }
 
-$reflect = new ReflectionClass("Foo");
+$reflect = new ReflectionClass('Foo');
 $doc = new DocBlock($reflect);
 
 echo "## Comment ##\n";
-echo $doc->getComment()."\n\n";
+echo $doc->getComment() . "\n\n";
 
 echo "## Tags ##\n";
 var_export($doc->getTags());

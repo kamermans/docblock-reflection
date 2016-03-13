@@ -4,112 +4,179 @@ namespace kamermans\Reflection;
 
 /**
  * A dead-simple PHP DocBlock parser that lets you check for tags and comments
- * in PHP doc block programatically
+ * in PHP doc block programatically.
  */
-class DocBlock {
+class DocBlock
+{
+    /**
+     * @var string
+     */
+    protected $raw;
 
-	protected $raw;
-	protected $tags = array();
-	protected $comment;
+    /**
+     * @var array
+     */
+    protected $tags;
 
-	public function __construct(\Reflector $reflector) {
-		if (!method_exists($reflector, "getDocComment")) {
-			throw new \InvalidArgumentException("Cannot parse DocBlock from an object of type ".get_class($reflector));
-		}
-		$this->parseDocBlock($reflector->getDocComment());
-	}
+    /**
+     * @var string
+     */
+    protected $comment;
 
-	/**
-	 * Get the raw, unparsed doc comment
-	 * @return string
-	 * @see ReflectionFunctionAbstract::getDocComment()
-	 */
-	public function getRaw() {
-		return $this->raw;
-	}
+    /**
+     * @param string|\Reflector $reflectorOrComment
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function __construct($reflectorOrComment)
+    {
+        if (!is_string($reflectorOrComment)) {
+            if (method_exists($reflectorOrComment, 'getDocComment')) {
+                $reflectorOrComment = $reflectorOrComment->getDocComment();
+            } else {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'Cannot parse DocBlock from an object of type %s.',
+                        get_class($reflectorOrComment)
+                    )
+                );
+            }
+        }
 
-	/**
-	 * Get the comment from the DocBlock
-	 * @return string
-	 */
-	public function getComment() {
-		return $this->comment;
-	}
+        $this->parseDocBlock($reflectorOrComment);
+    }
 
-	/**
-	 * Get an array of tags from the DocBlock
-	 * @return array
-	 */
-	public function getTags() {
-		return $this->tags;
-	}
+    /**
+     * Get the raw, unparsed doc comment.
+     *
+     * @return string
+     *
+     * @see ReflectionFunctionAbstract::getDocComment()
+     */
+    public function getRaw()
+    {
+        return $this->raw;
+    }
 
-	/**
-	 * Get a the value for a tag from the DocBlock
-	 * @return string
-	 */
-	public function getTag($name) {
-		return $this->tagExists($name)? $this->tags[$name]: null;
-	}
+    /**
+     * Get the comment from the DocBlock.
+     *
+     * @return string
+     */
+    public function getComment()
+    {
+        return $this->comment;
+    }
 
-	public function __get($name) {
-		return $this->getTag($name);
-	}
+    /**
+     * Get an array of tags from the DocBlock.
+     *
+     * @return array
+     */
+    public function getTags()
+    {
+        return $this->tags;
+    }
 
-	/**
-	 * Returns true if the tags exists in the DocBlock, even if it has no value
-	 * @return boolean
-	 */
-	public function tagExists($name) {
-		return array_key_exists($name, $this->tags);
-	}
+    /**
+     * Get a the value for a tag from the DocBlock.
+     *
+     * @param string $name
+     *
+     * @return string|array|null
+     */
+    public function getTag($name, $default = null, $asArray = false)
+    {
+        if (!isset($this->tags[$name])) {
+            return $default;
+        }
 
-	/**
-	 * Parses the DocBlock from the raw PHP doc comment
-	 * @param  string $raw
-	 */
-	protected function parseDocBlock($raw) {
-		$this->raw = $raw;
-		$raw = str_replace("\r\n", "\n", $raw);
-		$lines = explode("\n", $raw);
+        return ($asArray && !is_array($this->tags[$name]))
+            ? [$this->tags[$name]] : $this->tags[$name];
+    }
 
-		if (count($lines) < 3) {
-			return;
-		}
+    /**
+     * @param string $name
+     *
+     * @return string|array|null
+     */
+    public function __get($name)
+    {
+        return $this->getTag($name);
+    }
 
-		$start = array_shift($lines);
-		$end = array_pop($lines);
-		$in_comment = true;
+    /**
+     * Returns true if the tags exists in the DocBlock, even if it has no value.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function tagExists($name)
+    {
+        return array_key_exists($name, $this->tags);
+    }
 
-		foreach ($lines as $line) {
-			$line = preg_replace('#^[ \t\*]*#', '', $line);
+    /**
+     * Parses the DocBlock from the raw PHP doc comment.
+     *
+     * @param string $raw
+     */
+    protected function parseDocBlock($raw)
+    {
+        $this->raw = $raw;
+        $this->tags = [];
+        $raw = str_replace("\r\n", "\n", $raw);
+        $lines = explode("\n", $raw);
+        $matches = null;
 
-			if (strlen($line) < 2) {
-				continue;
-			}
+        switch (count($lines)) {
+            case 1:
+                // handle single-line docblock
+                if (!preg_match('#\\/\\*\\*([^*]*)\\*\\/#', $lines[0], $matches)) {
+                    return;
+                }
+                $lines[0] = substr($lines[0], 3, -2);
+                break;
 
-			if (preg_match('#@([^ ]+)(.*)#', $line, $matches)) {
-				$in_comment = false;
-				$tag_name = $matches[1];
-				$tag_value = trim($matches[2]);
+            case 2:
+                // probably malformed
+                return;
 
-				// If this tag was already parsed, make its value an array
-				if (isset($this->tags[$tag_name])) {
-					if (!is_array($this->tags[$tag_name])) {
-						$this->tags[$tag_name] = [$this->tags[$tag_name]];
-					}
+            default:
+                // handle multi-line docblock
+                array_shift($lines);
+                array_pop($lines);
+                break;
+        }
 
-					$this->tags[$tag_name][] = $tag_value;
-				} else {
-					$this->tags[$tag_name] = $tag_value;
-				}
-				continue;
-			}
+        foreach ($lines as $line) {
+            $line = preg_replace('#^[ \t\*]*#', '', $line);
 
-			$this->comment .= "$line\n";
-		}
+            if (strlen($line) < 2) {
+                continue;
+            }
 
-		$this->comment = trim($this->comment);
-	}
+            if (preg_match('#@([^ ]+)(.*)#', $line, $matches)) {
+                $tag_name = $matches[1];
+                $tag_value = trim($matches[2]);
 
+                // If this tag was already parsed, make its value an array
+                if (isset($this->tags[$tag_name])) {
+                    if (!is_array($this->tags[$tag_name])) {
+                        $this->tags[$tag_name] = [$this->tags[$tag_name]];
+                    }
+
+                    $this->tags[$tag_name][] = $tag_value;
+                } else {
+                    $this->tags[$tag_name] = $tag_value;
+                }
+                continue;
+            }
+
+            $this->comment .= "$line\n";
+        }
+
+        $this->comment = trim($this->comment);
+    }
 }
