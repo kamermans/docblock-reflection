@@ -11,9 +11,9 @@ This is a dead-simple DocBlock / doc comment / PHPDoc parser.  It separates a bl
 Use Composer to install by adding this to your `composer.json`:
 
 ```
-    "require": {
-        "kamermans/docblock-reflection": "~1.0"
-    }
+	"require": {
+		"kamermans/docblock-reflection": "~1.0"
+	}
 ```
 
 ## Usage ##

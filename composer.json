@@ -5,6 +5,10 @@
         {
             "name": "Steve Kamerman",
             "email": "stevekamerman@gmail.com"
+        },
+        {
+            "name": "Christan Sciberras",
+            "email": "christian@sciberras.me"
         }
     ],
     "license": "MPL",
@@ -13,7 +17,8 @@
     },
     "require-dev": {
         "php": ">=5.4",
-        "phpunit/phpunit": "~4.3"
+        "phpunit/phpunit": "~4.3",
+        "fabpot/php-cs-fixer": "^1.11"
     },
     "autoload": {
         "psr-4": {
