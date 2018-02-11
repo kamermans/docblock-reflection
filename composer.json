@@ -11,7 +11,7 @@
             "email": "christian@sciberras.me"
         }
     ],
-    "license": "MPL",
+    "license": "MPL-2.0",
     "require": {
         "php": ">=5.3"
     },
