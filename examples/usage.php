@@ -37,5 +37,5 @@ echo "## Comment ##\n";
 echo $doc->getComment() . "\n\n";
 
 echo "## Tags ##\n";
-var_export($doc->getTags());
+\var_export($doc->getTags());
 echo "\n";

@@ -30,14 +30,14 @@ class DocBlock
      */
     public function __construct($reflectorOrComment)
     {
-        if (!is_string($reflectorOrComment)) {
-            if (method_exists($reflectorOrComment, 'getDocComment')) {
+        if (!\is_string($reflectorOrComment)) {
+            if (\method_exists($reflectorOrComment, 'getDocComment')) {
                 $reflectorOrComment = $reflectorOrComment->getDocComment();
             } else {
                 throw new \InvalidArgumentException(
-                    sprintf(
+                    \sprintf(
                         'Cannot parse DocBlock from an object of type %s.',
-                        get_class($reflectorOrComment)
+                        \get_class($reflectorOrComment)
                     )
                 );
             }
@@ -91,7 +91,7 @@ class DocBlock
             return $default;
         }
 
-        return ($asArray && !is_array($this->tags[$name]))
+        return ($asArray && !\is_array($this->tags[$name]))
             ? [$this->tags[$name]] : $this->tags[$name];
     }
 
@@ -114,7 +114,7 @@ class DocBlock
      */
     public function tagExists($name)
     {
-        return array_key_exists($name, $this->tags);
+        return \array_key_exists($name, $this->tags);
     }
 
     /**
@@ -126,17 +126,17 @@ class DocBlock
     {
         $this->raw = $raw;
         $this->tags = [];
-        $raw = str_replace("\r\n", "\n", $raw);
-        $lines = explode("\n", $raw);
+        $raw = \str_replace("\r\n", "\n", $raw);
+        $lines = \explode("\n", $raw);
         $matches = null;
 
-        switch (count($lines)) {
+        switch (\count($lines)) {
             case 1:
                 // handle single-line docblock
-                if (!preg_match('#\\/\\*\\*([^*]*)\\*\\/#', $lines[0], $matches)) {
+                if (!\preg_match('#\\/\\*\\*([^*]*)\\*\\/#', $lines[0], $matches)) {
                     return;
                 }
-                $lines[0] = substr($lines[0], 3, -2);
+                $lines[0] = \substr($lines[0], 3, -2);
                 break;
 
             case 2:
@@ -145,25 +145,25 @@ class DocBlock
 
             default:
                 // handle multi-line docblock
-                array_shift($lines);
-                array_pop($lines);
+                \array_shift($lines);
+                \array_pop($lines);
                 break;
         }
 
         foreach ($lines as $line) {
-            $line = preg_replace('#^[ \t\*]*#', '', $line);
+            $line = \preg_replace('#^[ \t\*]*#', '', $line);
 
-            if (strlen($line) < 2) {
+            if (\strlen($line) < 2) {
                 continue;
             }
 
-            if (preg_match('#@([^ ]+)(.*)#', $line, $matches)) {
+            if (\preg_match('#@([^ ]+)(.*)#', $line, $matches)) {
                 $tag_name = $matches[1];
-                $tag_value = trim($matches[2]);
+                $tag_value = \trim($matches[2]);
 
                 // If this tag was already parsed, make its value an array
                 if (isset($this->tags[$tag_name])) {
-                    if (!is_array($this->tags[$tag_name])) {
+                    if (!\is_array($this->tags[$tag_name])) {
                         $this->tags[$tag_name] = [$this->tags[$tag_name]];
                     }
 
@@ -177,6 +177,6 @@ class DocBlock
             $this->comment .= "$line\n";
         }
 
-        $this->comment = trim($this->comment);
+        $this->comment = \trim($this->comment);
     }
 }
